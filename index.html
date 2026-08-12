@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>سیستم هک شد</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #0a0a0a;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Courier New', monospace;
+            direction: ltr;
+        }
+        .terminal {
+            background: #111;
+            width: 90%;
+            max-width: 800px;
+            padding: 30px 25px;
+            border-radius: 12px;
+            box-shadow: 0 0 50px rgba(255, 0, 0, 0.3), 0 0 100px rgba(255, 0, 0, 0.1);
+            border: 1px solid #2a2a2a;
+            position: relative;
+            overflow: hidden;
+        }
+        /* افکت نویز (اختیاری) */
+        .terminal::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: repeating-linear-gradient(0deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 2px, transparent 2px, transparent 4px);
+            pointer-events: none;
+            z-index: 1;
+        }
+        .line {
+            color: #0f0;
+            font-size: 16px;
+            line-height: 1.8;
+            text-shadow: 0 0 5px #0f0;
+            margin-bottom: 4px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            position: relative;
+            z-index: 2;
+        }
+        .line.red {
+            color: #ff3333;
+            text-shadow: 0 0 8px #ff0000;
+        }
+        .line.yellow {
+            color: #ffcc00;
+            text-shadow: 0 0 8px #ffaa00;
+        }
+        .line.cyan {
+            color: #00ffff;
+            text-shadow: 0 0 8px #00ffff;
+        }
+        .line.green-blink {
+            animation: blink 0.8s infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.2; }
+        }
+        .prompt {
+            color: #0f0;
+        }
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            height: 18px;
+            background: #0f0;
+            animation: blink 0.6s step-end infinite;
+            vertical-align: middle;
+            margin-left: 4px;
+        }
+        .big-text {
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin: 15px 0;
+        }
+        .button {
+            background: transparent;
+            border: 1px solid #ff3333;
+            color: #ff3333;
+            padding: 8px 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.2s;
+            border-radius: 4px;
+            text-shadow: 0 0 5px #ff0000;
+            box-shadow: 0 0 10px rgba(255,0,0,0.2);
+        }
+        .button:hover {
+            background: #ff3333;
+            color: #000;
+            box-shadow: 0 0 30px #ff0000;
+        }
+        .fake-input {
+            display: inline-block;
+            min-width: 200px;
+        }
+        /* خطوط متحرک بارگذاری */
+        .loading-dots::after {
+            content: '';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+        @keyframes dots {
+            0% { content: ''; }
+            25% { content: '.'; }
+            50% { content: '..'; }
+            75% { content: '...'; }
+            100% { content: ''; }
+        }
+        /* ریسپانسیو */
+        @media (max-width: 600px) {
+            .terminal { padding: 20px 15px; }
+            .line { font-size: 14px; }
+            .big-text { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+<div class="terminal" id="terminal">
+
+    <!-- خط اول -->
+    <div class="line">
+        <span class="prompt">root@hacklab:~$</span> <span class="cyan">./exploit --bank=refah --action=drain</span>
+    </div>
+
+    <!-- خطوطی که به تدریج اضافه می‌شوند (جاوااسکریپت) -->
+    <div id="output"></div>
+
+    <!-- دکمه‌های فیک (برای ترس بیشتر) -->
+    <div style="margin-top:20px; display:flex; gap:12px; flex-wrap:wrap; z-index:2; position:relative;">
+        <button class="button" onclick="fakeClick('وقف')">⛔ توقف</button>
+        <button class="button" onclick="fakeClick('لغو')">❌ لغو عملیات</button>
+        <button class="button" onclick="fakeClick('بازیابی')">💾 بازیابی</button>
+        <button class="button" style="border-color:#0f0; color:#0f0; text-shadow:0 0 5px #0f0;" onclick="fakeClick('تایید')">✔ تایید</button>
+    </div>
+
+    <!-- پیام هشدار کوچک پایین (اختیاری) -->
+    <div class="line red" style="font-size:12px; margin-top:15px; opacity:0.7;">
+        [این صفحه صرفاً برای شوخی طراحی شده است. هیچ داده‌ای ذخیره یا ارسال نمی‌شود.]
+    </div>
+</div>
+
+<script>
+    // لیست خطوطی که به ترتیب نمایش داده می‌شوند
+    const lines = [
+        { text: '[•] در حال نفوذ به سرور بانک رفاه ...', color: 'cyan' },
+        { text: '[•] تزریق پیلود به درگاه پرداخت ...', color: 'cyan' },
+        { text: '[✔] دسترسی سطح ROOT به دست آمد.', color: 'green' },
+        { text: '[!] هشدار: تراکنش‌های مشکوک شناسایی شد.', color: 'yellow' },
+        { text: '[•] در حال انتقال موجودی به حساب خارجی ...', color: 'cyan' },
+        { text: '', color: '' }, // خط خالی برای فاصله
+        { text: '═══════════════════════════════════════════', color: 'red' },
+        { text: '   شما هک شده اید !', color: 'red', big: true },
+        { text: '   حساب بانک رفاه شما خالی شده است.', color: 'red', big: true },
+        { text: '═══════════════════════════════════════════', color: 'red' },
+        { text: '', color: '' },
+        { text: '[⚠] تمام اطلاعات شما در اختیار ماست.', color: 'yellow' },
+        { text: '[⚠] برای بازگردانی، ۰.۵ بیت‌کوین به آدرس زیر ارسال کنید:', color: 'yellow' },
+        { text: '   bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh', color: 'cyan' },
+        { text: '', color: '' },
+        { text: '[•] ارسال درخواست به سرور خارجی ...', color: 'cyan' },
+        { text: '[•] دانلود بدافزار محافظ ...', color: 'cyan' },
+        { text: '[✔] عملیات با موفقیت انجام شد.', color: 'green' },
+        { text: '', color: '' },
+        { text: '>> در حال پاک کردن لاگ‌ها ...', color: 'red' },
+        { text: '>> سیستم در ۵ ثانیه راه‌اندازی مجدد می‌شود.', color: 'red' },
+        { text: '', color: '' },
+        { text: '_', color: 'green', cursor: true } // نشانگر چشمک‌زن
+    ];
+
+    let index = 0;
+    const outputDiv = document.getElementById('output');
+
+    function addLine(lineObj) {
+        const div = document.createElement('div');
+        div.className = 'line';
+
+        if (lineObj.color) {
+            div.classList.add(lineObj.color);
+        }
+        if (lineObj.big) {
+            div.classList.add('big-text');
+        }
+        if (lineObj.cursor) {
+            div.innerHTML = lineObj.text + ' <span class="cursor"></span>';
+        } else {
+            div.textContent = lineObj.text;
+        }
+        outputDiv.appendChild(div);
+        // اسکرول به پایین
+        const terminal = document.getElementById('terminal');
+        terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    function showNext() {
+        if (index < lines.length) {
+            addLine(lines[index]);
+            index++;
+            // سرعت نمایش: برای خطوط بزرگ مکث بیشتر
+            const delay = (lines[index-1].big) ? 600 : 150;
+            setTimeout(showNext, delay);
+        }
+    }
+
+    // دکمه‌های فیک (فقط پیام در کنسول یا تغییر ظاهر)
+    function fakeClick(action) {
+        const msgs = {
+            'وقف': '⛔ فرمان وقف صادر شد اما هیچ اتفاقی نیفتاد :)',
+            'لغو': '❌ عملیات لغو شد (فیک)',
+            'بازیابی': '💾 درخواست بازیابی ثبت شد (هیچ اتفاقی نمی‌افتد)',
+            'تایید': '✔ تایید شد (شوخی بود)'
+        };
+        // اضافه کردن یک خط واکنش به دکمه
+        const div = document.createElement('div');
+        div.className = 'line yellow';
+        div.textContent = `> ${msgs[action] || 'دستور نامعتبر'}`;
+        outputDiv.appendChild(div);
+        // اسکرول
+        document.getElementById('terminal').scrollTop = document.getElementById('terminal').scrollHeight;
+    }
+
+    // شروع نمایش پس از ۱ ثانیه (برای حس آماده‌سازی)
+    setTimeout(() => {
+        showNext();
+    }, 1000);
+
+    // جلوگیری از راست‌کلیک (فقط برای شوخی بیشتر)
+    document.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    // تغییر عنوان مرورگر به صورت دوره‌ای (ترسناک)
+    let isHacked = false;
+    setInterval(() => {
+        document.title = isHacked ? '❗ شما هک شده اید ❗' : 'سیستم در خطر است';
+        isHacked = !isHacked;
+    }, 1500);
+
+    // (اختیاری) افکت صوتی ندارد، ولی می‌تونی با کلیک صفحه صدا بذاری
+</script>
+
+</body>
+</html>
